@@ -1,0 +1,5 @@
+.env
+# python virtual environment
+Lib
+Scripts
+__pychache__
