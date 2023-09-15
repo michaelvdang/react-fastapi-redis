@@ -1,10 +1,3 @@
-.env
-# python virtual environment
-Lib
-Scripts
-__pychache__
-
-# from react .gitignore
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies

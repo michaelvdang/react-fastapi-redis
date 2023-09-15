@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from redis_om import get_redis_connection, HashModel
+from redis_om.model.model import NotFoundError
 import os
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +12,7 @@ app = FastAPI()
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins = ['http://localhost:3000'],
+  allow_origins = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
   allow_methods = ['*'],
   allow_headers = ['*'],
 )
@@ -46,7 +47,7 @@ def format(pk: str):
   product = Product.get(pk)
 
   return {
-    'id': product.pk,
+    'product_id': product.pk,
     'name': product.name,
     'price': product.price,
     'quantity': product.quantity,
@@ -54,7 +55,10 @@ def format(pk: str):
 
 @app.get('/products/{pk}')
 def get(pk: str):
-  return Product.get(pk)
+  try:
+    return Product.get(pk)
+  except NotFoundError:
+    raise HTTPException(status_code=404, detail="Product not found")
 
 @app.post('/products')
 async def create(product: Product):

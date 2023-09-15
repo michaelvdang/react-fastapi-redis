@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Body
 from fastapi.background import BackgroundTasks
 from redis_om import get_redis_connection, HashModel
+from redis_om.model.model import NotFoundError
 import os
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +15,7 @@ app = FastAPI()
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins = ['http://localhost:3000'],
+  allow_origins = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
   allow_methods = ['*'],
   allow_headers = ['*'],
 )
@@ -78,17 +79,29 @@ async def create(request: Request, background_tasks: BackgroundTasks): # id, qua
   return order
 
 def order_completed(order: Order):
-  time.sleep(5)
+  time.sleep(5) # processing payment, if successful, then:
   order.status = 'completed'
   order.save()
   # RedisStream, similar to Kafka, RabbitMQ
   # this will be consumed by the product service
-  redis.xadd('order_completed', {'order_id': order.pk}, '*')
+  redis.xadd('order_completed', dict(order), '*')
+
 
 @app.get('/orders/{pk}')
 def get(pk: str):
-  return Order.get(pk)
+  try:
+    return Order.get(pk)
+  except NotFoundError:
+    return 'Order not found'
 
 @app.delete('/orders/{pk}')
 def delete(pk: str):
-  return Order.delete(pk)
+  try:
+    return Order.delete(pk)
+  except NotFoundError:
+    return 'Order not found'
+
+@app.delete('/orders')
+def delete(lis: list[str]):
+  # return lis
+  return [Order.delete(pk) for pk in lis]
