@@ -2,7 +2,7 @@
 # python virtual environment
 Lib
 Scripts
-__pychache__
+__pycache__
 
 # from react .gitignore
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
